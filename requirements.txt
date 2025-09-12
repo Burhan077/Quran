@@ -1,0 +1,9 @@
+streamlit
+moviepy==1.0.3
+matplotlib
+numpy
+requests
+arabic-reshaper
+python-bidi
+Pillow
+
