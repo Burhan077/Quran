@@ -22,7 +22,8 @@ This is a python use case so python is a requirement for the app.
 - VideoClip
 - Streamlit
   
-
+## Deployment
+A live version of the Project is [here](https://holyquran.streamlit.app/)
 ##  Project Highlights
 This project is meant to assist those who love editing.
 More backgrouns can be added by placing them in the Data/Backgrounds folder and editing the App.py to add them.
