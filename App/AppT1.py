@@ -12,12 +12,9 @@ from moviepy.editor import (
     CompositeVideoClip
 )
 from moviepy.video.fx.loop import loop
-import io
-import platform
 
 # ---------------- PROJECT SETUP ----------------
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 DATA_DIR = os.path.join(BASE_DIR, "Data")
 BACKGROUNDS_DIR = os.path.join(DATA_DIR, "Backgrounds")
 FONTS_DIR = os.path.join(DATA_DIR, "font")
@@ -65,7 +62,7 @@ with st.sidebar:
 bg_path = os.path.join(BACKGROUNDS_DIR, background_choice)
 if os.path.exists(bg_path):
     st.subheader("Background Preview")
-    st.video(bg_path)  # preview selected background
+    st.video(bg_path)
 
 # ---------------- HELPER FUNCTIONS ----------------
 def get_audio_url(reciter, surah, verse):
@@ -145,38 +142,28 @@ if generate_clicked:
         # Combine background + text + audio
         final_clip = CompositeVideoClip([final_bg]+text_clips).set_audio(audio_clip)
 
-        # File naming
-        file_name = f"surah_{surah_num}_{start}-{end}_{reciter_choice}.mp4"
-
-        # ---------------- LOCAL vs CLOUD ----------------
-        if "streamlit" in platform.system().lower():
-            # On cloud - provide download button
-            temp_path = "temp.mp4"
-            final_clip.write_videofile(temp_path, codec="libx264", audio_codec="aac", threads=4, preset="ultrafast")
-
-            with open(temp_path, "rb") as f:
-                video_bytes = f.read()
-
-            download_button_placeholder.download_button(
-                "Download Video",
-                data=video_bytes,
-                file_name=file_name,
-                mime="video/mp4"
-            )
+        # Choose output path
+        user_downloads = os.path.expanduser("~/Downloads")
+        if os.path.exists(user_downloads):
+            output_path = os.path.join(user_downloads, f"surah_{surah_num}_{start}-{end}_{reciter_choice}.mp4")
         else:
-            # Local run → save to Downloads folder
-            downloads_dir = os.path.join(os.path.expanduser("~"), "Downloads")
-            os.makedirs(downloads_dir, exist_ok=True)
-            output_path = os.path.join(downloads_dir, file_name)
+            output_path = os.path.join(BASE_DIR, f"surah_{surah_num}_{start}-{end}_{reciter_choice}.mp4")
 
-            final_clip.write_videofile(output_path, codec="libx264", audio_codec="aac", threads=4, preset="ultrafast")
-            st.success(f"Video saved to {output_path}")
+        final_clip.write_videofile(output_path, codec="libx264", audio_codec="aac", threads=4, preset="ultrafast")
 
-        st.session_state.video_ready = True
-        progress_bar.empty()
+        # Add download button
+        with open(output_path, "rb") as f:
+            download_button_placeholder.download_button(
+                "⬇ Download Video",
+                f,
+                file_name=os.path.basename(output_path),
+                mime="video/mp4",
+                disabled=False
+            )
+
         st.success("Video generated successfully!")
 
-        # Cleanup
+        # Cleanup temp audio
         os.unlink(audio_path)
 
     except Exception as e:
